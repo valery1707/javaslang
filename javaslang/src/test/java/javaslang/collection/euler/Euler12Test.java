@@ -33,6 +33,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class Euler12Test {
 
+    @Test(timeout = 10_000/*10 sec*/)
+    public void shouldSolveProblem12() {
+        Stream<Long> triangle = Utils.triangle();
+        Stream<Tuple2<Long, Stream<Long>>> factors = triangle.map(num -> Tuple.of(num, Euler12Test.divisions(num)));
+        assertThat(factors.find(t -> t._2().length() >= 5).get()._1()).isEqualTo(28);
+        assertThat(factors.find(t -> t._2().length() >= 500).get()._1()).isEqualTo(76_576_500);
+    }
+
     @Test
     public void testTriangleNumbers() throws Exception {
         Stream<Long> triangle = Utils.triangle();
