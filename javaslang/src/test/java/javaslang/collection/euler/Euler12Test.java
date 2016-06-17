@@ -1,5 +1,9 @@
 package javaslang.collection.euler;
 
+import javaslang.Tuple;
+import javaslang.Tuple2;
+import javaslang.collection.LinkedHashMap;
+import javaslang.collection.List;
 import javaslang.collection.Stream;
 import org.junit.Test;
 
@@ -25,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * We can see that 28 is the first triangle number to have over five divisors.
  * <p>
  * What is the value of the first triangle number to have over five hundred divisors?
+ * @see <a href="https://projecteuler.net/problem=12">projecteuler.net problem 12</a>.
  */
 public class Euler12Test {
 
@@ -35,5 +40,64 @@ public class Euler12Test {
                 .hasSize(10)
                 .containsExactly(1L, 3L, 6L, 10L, 15L, 21L, 28L, 36L, 45L, 55L);
         assertThat(triangle.get(6)).isEqualTo(28);
+    }
+
+    /**
+     * Let us list the factors of the first seven triangle numbers:
+     * <ul>
+     * <li>1: 1</li>
+     * <li>3: 1,3</li>
+     * <li>6: 1,2,3,6</li>
+     * <li>10: 1,2,5,10</li>
+     * <li>15: 1,3,5,15</li>
+     * <li>21: 1,3,7,21</li>
+     * <li>28: 1,2,4,7,14,28</li>
+     */
+    @Test
+    public void testTriangleDivisions() {
+        LinkedHashMap<Long, List<Long>> test = LinkedHashMap.<Long, List<Long>>empty()
+                .put(1L, List.of(1L))
+                .put(3L, List.of(1L, 3L))
+                .put(6L, List.of(1L, 2L, 3L, 6L))
+                .put(10L, List.of(1L, 2L, 5L, 10L))
+                .put(15L, List.of(1L, 3L, 5L, 15L))
+                .put(21L, List.of(1L, 3L, 7L, 21L))
+                .put(28L, List.of(1L, 2L, 4L, 7L, 14L, 28L));
+        Stream<Long> triangle = Utils.triangle();
+        Stream<Tuple2<Long, Stream<Long>>> factors = triangle.map(num -> Tuple.of(num, Euler12Test.divisions(num)));
+        test.forEach((num, divisions) -> {
+            int pos = triangle.indexOf(num);
+            Tuple2<Long, Stream<Long>> actual = factors.get(pos);
+            assertThat(actual._1()).as("triangle(%s)", pos).isEqualTo(num);
+            assertThat(actual._2().toJavaList()).as("divisions(%s)", num).containsOnlyElementsOf(divisions.toJavaList());
+        });
+    }
+
+    private static Stream<Long> divisions(long value) {
+        if (value == 0) {
+            return Stream.empty();
+        }
+        return Stream
+                .rangeClosed(2L, Math.floorDiv(value, 2))
+                .filter(d -> value % d == 0)
+                .prepend(1L).append(value)
+                .distinct();
+    }
+
+    @Test
+    public void testDivisions() {
+        LinkedHashMap
+                .of(0L, List.<Long>empty())
+                .put(1L, List.of(1L))
+                .put(2L, List.of(1L, 2L))
+                .put(3L, List.of(1L, 3L))
+                .put(4L, List.of(1L, 2L, 4L))
+                .put(5L, List.of(1L, 5L))
+                .put(6L, List.of(1L, 2L, 3L, 6L))
+                .forEach((num, divisions) -> {
+                    assertThat(divisions(num)).as("divisions(%s)", num.toString())
+                            .containsOnlyElementsOf(divisions.toJavaList())
+                            .hasSize(divisions.size());
+                });
     }
 }
